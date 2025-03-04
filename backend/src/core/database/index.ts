@@ -9,7 +9,7 @@ class Database {
 
     async connect(): Promise<void> {
         try {
-            await mongoose.connect(this.dbUrl, {dbName: 'job-service'});
+            await mongoose.connect(this.dbUrl, {dbName: 'inventory-app-databse'});
             console.info(`Database connected to: ${this.dbUrl}`);
         } catch (error) {
             console.error(`Error connecting to database: ${error}`);
