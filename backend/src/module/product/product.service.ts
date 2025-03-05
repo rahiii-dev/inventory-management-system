@@ -42,10 +42,10 @@ export class ProductService implements IProductService {
         return !!product;
     }
 
-    async listProducts(filter: { query?: string; page: number; limit: number; }): Promise<IPaginationResponse<ProductDTO>> {
-        const { query, page, limit } = filter;
+    async listProducts(filter: { managerId: string, query?: string; page: number; limit: number; }): Promise<IPaginationResponse<ProductDTO>> {
+        const { managerId, query, page, limit } = filter;
     
-        const filterQuery: FilterQuery<IProduct> = {};
+        const filterQuery: FilterQuery<IProduct> = {managerId};
     
         if (query) {
             const sanitizedQuery = querySanitizer(query);
@@ -69,6 +69,7 @@ export class ProductService implements IProductService {
             id: data.id,
             name: data.name,
             description: data.description,
+            managerId: data.managerId.toString(),
             price: data.price,
             quantity: data.quantity,
             isDeleted: data.isDeleted,

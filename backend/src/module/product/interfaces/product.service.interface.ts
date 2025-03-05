@@ -6,5 +6,5 @@ export interface IProductService {
     updateProduct(id: string, data: UpdateProductDTO): Promise<ProductDTO | null>;
     deleteProduct(id: string): Promise<boolean>;
     restoreProduct(id: string): Promise<boolean>;
-    listProducts(filter: {query?: string, page: number, limit: number}): Promise<IPaginationResponse<ProductDTO>>;
+    listProducts(filter: { managerId: string, query?: string, page: number, limit: number}): Promise<IPaginationResponse<ProductDTO>>;
 }

@@ -1,8 +1,9 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IProduct extends Document {
   name: string;
   description: string;
+  managerId: string | Types.ObjectId;
   price: number;
   quantity: number;
   isDeleted: boolean;
@@ -12,6 +13,7 @@ export interface IProduct extends Document {
 
 const ProductSchema = new Schema<IProduct>(
   {
+    managerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     name: {
       type: String,
       required: true,

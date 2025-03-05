@@ -17,7 +17,12 @@ export class ProductController {
      * @desc Create a new product
      **/
     public createProduct = asyncWrapper(async (req: AuthRequest, res: Response) => {
-        const product = await this.productService.createProduct(req.body as CreateProductDTO);
+        const managerId = req.payload?.userId!;
+        const {name, description, price, quantity} = req.body as CreateProductDTO
+        const product = await this.productService.createProduct({
+            managerId,
+            name, description, price, quantity
+        });
         res.status(201).json(product);
     });
 
@@ -26,9 +31,12 @@ export class ProductController {
      * @scope Public
      * @desc Get paginated list of products
      **/
-    public listProducts = asyncWrapper(async (req: Request, res: Response) => {
+    public listProducts = asyncWrapper(async (req: AuthRequest, res: Response) => {
+        const managerId = req.payload?.userId!;
+
         const { query, page = 1, limit = 10 } = req.query;
         const products = await this.productService.listProducts({
+            managerId,
             query: query as string,
             page: parseInt(page as string, 10),
             limit: parseInt(limit as string, 10),

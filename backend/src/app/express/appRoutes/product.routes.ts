@@ -9,7 +9,7 @@ const productController = container.get<ProductController>(TYPES.ProductControll
 
 // baseurl: /api/product
 router.post("/", isAuthenticated, productController.createProduct);
-router.get("/list", productController.listProducts);
+router.get("/list", isAuthenticated, productController.listProducts);
 router.put("/:id", isAuthenticated, productController.updateProduct);
 router.put("/delete/:id", isAuthenticated, productController.deleteProduct);
 router.put("/restore/:id", isAuthenticated, productController.restoreProduct);
