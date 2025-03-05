@@ -7,7 +7,7 @@ import { isAuthenticated } from "../../../core/token/user/userMiddleware";
 const router = Router();
 const userController = container.get<UserController>(TYPES.UserController)
 
-// baseurl: 
+// baseurl: /api/user
 router.get("/", isAuthenticated, userController.getUser);
 
 router.post("/login", userController.login);

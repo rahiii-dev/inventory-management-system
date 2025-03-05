@@ -6,6 +6,10 @@ export default {
   UserService: Symbol('UserService'),
   UserController: Symbol('UserController'),
   UserRepository: Symbol('UserRepository'),
+  // product
+  ProductService: Symbol('ProductService'),
+  ProductController: Symbol('ProductController'),
+  ProductRepository: Symbol('ProductRepository'),
 
   // external
   TokenService: Symbol('TokenService'),
