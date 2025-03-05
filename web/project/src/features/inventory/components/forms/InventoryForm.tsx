@@ -1,4 +1,4 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, CircularProgress, TextField } from "@mui/material";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { IProduct } from "../../../../core/types/product.interface";
@@ -29,8 +29,8 @@ const InventoryForm = ({ initialData, onSubmit }: InventoryFormProps) => {
             : await createProduct(values);
 
           onSubmit(data);
-        } catch (error) {
-          toast.error("An error occurred. Please try again.");
+        } catch (error: any) {
+          toast.error(error || "An error occurred. Please try again.");
         } finally {
           setSubmitting(false);
         }
@@ -86,7 +86,7 @@ const InventoryForm = ({ initialData, onSubmit }: InventoryFormProps) => {
             />
 
             <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : initialData ? "Update" : "Add"}
+              {isSubmitting ? <CircularProgress size={20} /> : initialData ? "Update" : "Add"}
             </Button>
           </Box>
         </Form>
