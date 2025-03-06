@@ -55,10 +55,13 @@ const InventoryPage = () => {
   const handleCloseModal = () => setModalOpen(false);
 
   const onAdded = async (item: IProduct) => {
-    if(page > 1){
+    if (page > 1) {
       fetchProducts();
     } else {
-      setInventory([item, ...inventory]);
+      if (inventory.length > PAGE_LIMIT) {
+        setTotalPages(2)
+      }
+      setInventory([item, ...inventory.slice(0, PAGE_LIMIT - 1)]);
     }
   };
 

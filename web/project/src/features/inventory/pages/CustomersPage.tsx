@@ -59,7 +59,10 @@ const CustomersPage = () => {
         if (page > 1) {
             fetchCustomers();
         } else {
-            setCustomers([item, ...customers]);
+            if (customers.length > PAGE_LIMIT) {
+                setTotalPages(2)
+            }
+            setCustomers([item, ...customers.slice(0, PAGE_LIMIT - 1)]);
         }
     };
 
