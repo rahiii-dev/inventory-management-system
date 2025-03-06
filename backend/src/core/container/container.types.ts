@@ -19,7 +19,12 @@ export default {
   SaleService: Symbol('SaleService'),
   SaleController: Symbol('SaleController'),
   SaleRepository: Symbol('SaleRepository'),
+  // report
+  ReportService: Symbol('ReportService'),
+  ReportController: Symbol('ReportController'),
 
   // external
   TokenService: Symbol('TokenService'),
+  PDFService: Symbol('PDFService'),
+  ExcelService: Symbol('ExcelService'),
 };

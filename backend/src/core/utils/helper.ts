@@ -9,3 +9,11 @@ export function capitalizeFirstLetter(str: string): string {
 export function capitalize(str: string): string {
   return str.split(" ").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
 }
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
+};
+
+export const formatDate = (date: Date): string => {
+  return new Date(date).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+};

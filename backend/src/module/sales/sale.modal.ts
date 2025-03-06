@@ -21,6 +21,8 @@ export interface ISale extends Document {
   customer?: mongoose.Types.ObjectId | string; 
   totalAmount: number;
   paymentMethod: PaymentMethod;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const SaleSchema = new Schema<ISale>(
