@@ -1,6 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
-import CustomerForm from "./forms/CustomerForm";
-import { ICustomer } from "../../../core/types/customer.interface";
+import CustomerForm from "../forms/CustomerForm";
+import { ICustomer } from "../../../../core/types/customer.interface";
 
 interface CustomerModalProps {
   open: boolean;

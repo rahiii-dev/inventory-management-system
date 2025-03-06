@@ -1,6 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
-import InventoryForm from "./forms/InventoryForm";
-import { IProduct } from "../../../core/types/product.interface";
+import InventoryForm from "../forms/InventoryForm";
+import { IProduct } from "../../../../core/types/product.interface";
 
 interface InventoryModalProps {
   open: boolean;

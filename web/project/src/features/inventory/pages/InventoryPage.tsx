@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { Add, Edit, Delete, Restore } from "@mui/icons-material";
 import PageTitle from "../components/PageTitle";
-import InventoryModal from "../components/InventoryModal";
+import InventoryModal from "../components/modals/InventoryModal";
 import { IProduct } from "../../../core/types/product.interface";
 import { deleteProduct, listProducts, restoreProduct } from "../../../core/api/productApi";
 import { toast } from "sonner";

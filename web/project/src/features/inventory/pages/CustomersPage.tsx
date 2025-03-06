@@ -11,7 +11,7 @@ import PageTitle from "../components/PageTitle";
 import { ICustomer } from "../../../core/types/customer.interface";
 import { deleteCustomer, listCustomers, restoreCustomer } from "../../../core/api/customerApi";
 import { toast } from "sonner";
-import CustomerModal from "../components/CustomerModal";
+import CustomerModal from "../components/modals/CustomerModal";
 
 const PAGE_LIMIT = 10;
 

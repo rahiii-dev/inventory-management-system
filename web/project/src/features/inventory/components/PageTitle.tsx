@@ -8,7 +8,7 @@ interface PageTitleProps {
 
 const PageTitle = ({ text, subtitle, mb = 3 }: PageTitleProps) => (
   <Box component="header" mb={mb}>
-    <Typography variant="h4" fontWeight="bold">
+    <Typography variant="h5" fontWeight="bold">
       {text}
     </Typography>
     {subtitle && (

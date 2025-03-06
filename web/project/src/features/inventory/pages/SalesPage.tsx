@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-    Box, Button, TextField, Table, TableBody, TableCell,
-    TableContainer, TableHead, TableRow, CircularProgress, Alert, Pagination,
+    Box, Button, TextField, CircularProgress, Alert, Pagination,
     debounce,
     Typography
 } from "@mui/material";
-import { Add, Visibility } from "@mui/icons-material";  // Import View Icon
+import { Add } from "@mui/icons-material"; 
 import PageTitle from "../components/PageTitle";
 import { ISale } from "../../../core/types/sale.interface";
 import { listSales } from "../../../core/api/salesApi";
-import SalesModal from "../components/SalesModal";
+import SalesModal from "../components/modals/SalesModal";
+import SalesTable from "../components/tables/SalesTable";
 
 const PAGE_LIMIT = 10;
 
 const SalesPage = () => {
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedSale, setSelectedSale] = useState<ISale | null>(null);  // Store selected sale
+    const [selectedSale, setSelectedSale] = useState<ISale | null>(null);  
     const [search, setSearch] = useState("");
     const [sales, setSales] = useState<ISale[]>([]);
     const [loading, setLoading] = useState(false);
@@ -49,9 +49,9 @@ const SalesPage = () => {
 
     const handleOpenModal = (sale?: ISale) => {
         if (sale) {
-            setSelectedSale(sale);  
+            setSelectedSale(sale);
         } else {
-            setSelectedSale(null); 
+            setSelectedSale(null);
         }
         setModalOpen(true);
     };
@@ -88,43 +88,7 @@ const SalesPage = () => {
             {error && <Alert severity="error">{error}</Alert>}
 
             {!loading && sales.length > 0 ? (
-                <TableContainer>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><strong>Sale ID</strong></TableCell>
-                                <TableCell><strong>Customer</strong></TableCell>
-                                <TableCell><strong>Total Amount</strong></TableCell>
-                                <TableCell><strong>Payment Method</strong></TableCell>
-                                <TableCell><strong>Actions</strong></TableCell>  
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sales.map((item) => (
-                                <TableRow key={item.id}>
-                                    <TableCell>{item.saleId}</TableCell>
-                                    <TableCell>
-                                        {!item.customer ? "-" :
-                                            typeof item.customer === "string" ? "N/A" :
-                                            item.customer.fullName}
-                                    </TableCell>
-                                    <TableCell>₹{item.totalAmount.toFixed(2)}</TableCell>
-                                    <TableCell>{item.paymentMethod}</TableCell>
-                                    <TableCell>
-                                        <Button
-                                            size="small"
-                                            variant="outlined"
-                                            startIcon={<Visibility />}
-                                            onClick={() => handleOpenModal(item)}
-                                        >
-                                            View
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                <SalesTable sales={sales} handleView={handleOpenModal}/>
             ) : (
                 !loading && <Alert severity="info">No sales found.</Alert>
             )}
@@ -145,7 +109,7 @@ const SalesPage = () => {
                 open={modalOpen}
                 handleClose={handleCloseModal}
                 onAdded={onAdded}
-                sale={selectedSale}  
+                sale={selectedSale}
             />
         </>
     );

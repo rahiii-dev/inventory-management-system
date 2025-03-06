@@ -1,9 +1,9 @@
 import { 
     Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
-import SalesForm from "./forms/SalesForm";
-import { ISale } from "../../../core/types/sale.interface";
-import SaleDetails from "./SaleDetail";
+import SalesForm from "../forms/SalesForm";
+import { ISale } from "../../../../core/types/sale.interface";
+import SaleDetails from "../SaleDetail";
 
 interface SalesModalProps {
     open: boolean;
