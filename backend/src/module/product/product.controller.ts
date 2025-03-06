@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { injectable, inject } from "inversify";
 import TYPES from '../../core/container/container.types';
 import { IProductService } from "./interfaces/product.service.interface";

@@ -3,6 +3,7 @@ import { errorHandler, notFoundHandler } from "../errorHandler";
 import { userRoutes } from "./user.routes";
 import { productRoutes } from "./product.routes";
 import { customerRoutes } from "./customer.routes";
+import { saleRoutes } from "./sale.routes";
 
 export function registerRoutes(app:Application, prefix="/api") {
     app.get(`${prefix}/health`, (req, res) => {
@@ -12,6 +13,7 @@ export function registerRoutes(app:Application, prefix="/api") {
     app.use(`${prefix}/user`, userRoutes);
     app.use(`${prefix}/product`, productRoutes);
     app.use(`${prefix}/customer`, customerRoutes);
+    app.use(`${prefix}/sale`, saleRoutes);
     
     app.use(notFoundHandler);
     app.use(errorHandler);

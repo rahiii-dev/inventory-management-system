@@ -12,7 +12,7 @@ export interface UpdateProductDTO {
     quantity?: number;
 }
 export interface ProductDTO {
-    id: number;
+    id: string;
     name: string;
     description: string;
     managerId: string;

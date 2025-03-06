@@ -27,6 +27,24 @@ export class ProductService implements IProductService {
         return product ? this.toDTO(product) : null;
     }
 
+    async getProductById(id: string): Promise<ProductDTO | null> {
+        const product = await this.repo.findById(id);
+        return product ? this.toDTO(product) : null;
+    }
+
+    async bulkStockUpdate(data: { id: string; quantity: number; }[]): Promise<boolean> {
+        const writes = [];
+        for(let d of data){
+            writes.push({
+                    updateOne: {
+                        filter: { _id: d.id },
+                        update: { $inc: { quantity: -d.quantity } }
+                    }
+                })
+        }
+        return await this.repo.bulkWrite(writes);
+    }
+
     async deleteProduct(id: string): Promise<boolean> {
         if(!isValidObjectId(id)) {
             throw new BadRequestError('Invalid product id');

@@ -15,6 +15,10 @@ export default {
   CustomerService: Symbol('CustomerService'),
   CustomerController: Symbol('CustomerController'),
   CustomerRepository: Symbol('CustomerRepository'),
+  // sale
+  SaleService: Symbol('SaleService'),
+  SaleController: Symbol('SaleController'),
+  SaleRepository: Symbol('SaleRepository'),
 
   // external
   TokenService: Symbol('TokenService'),

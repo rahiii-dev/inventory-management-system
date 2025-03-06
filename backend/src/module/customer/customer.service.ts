@@ -34,6 +34,14 @@ export class CustomerService implements ICustomerService {
         return customer ? this.toDTO(customer) : null;
     }
 
+    async getCustomerById(id: string): Promise<CustomerDTO | null> {
+        if (!isValidObjectId(id)) {
+            throw new BadRequestError('Invalid customer id');
+        }
+        const customer = await this.repo.findById(id);
+        return customer ? this.toDTO(customer) : null;
+    }
+
     async deleteCustomer(id: string): Promise<boolean> {
         if (!isValidObjectId(id)) {
             throw new BadRequestError('Invalid customer id');
