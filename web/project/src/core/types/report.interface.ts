@@ -1,4 +1,4 @@
-import { ISale } from "./sale.interface";
+import { ISale, PaymentMethod } from "./sale.interface";
 
 export type ReportExportType = "excel" | "pdf" | "print" | "email";
 
@@ -24,5 +24,20 @@ export interface IItemReport {
         quantity: number;
         unitPrice: number;
         total: number;
+    }[];
+}
+
+
+export interface ICustomerReport {
+    customerId: string;
+    customerName: string;
+    totalSpent: number; 
+    totalOrders: number;
+    transactions: {
+        saleId: string;
+        date: Date;
+        totalAmount: number;
+        paymentMethod: PaymentMethod;
+        itemsPurchased: number; 
     }[];
 }

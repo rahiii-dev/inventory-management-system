@@ -19,12 +19,14 @@ import {
 } from "@mui/material";
 import { Print, PictureAsPdf, Email, GridOn, CloudDownload } from "@mui/icons-material";
 import PageTitle from "../components/PageTitle";
-import { getSalesReport, exportSalesReport, getItemReport, exportItemReport } from "../../../core/api/reportApi";
+import { getSalesReport, exportSalesReport, getItemReport, exportItemReport, getCustomerReport, exportCustomerReport } from "../../../core/api/reportApi";
 import SalesReport from "../components/SalesReport";
-import { IItemReport, ISalesReport, ReportExportType } from "../../../core/types/report.interface";
+import { ICustomerReport, IItemReport, ISalesReport, ReportExportType } from "../../../core/types/report.interface";
 import { toast } from "sonner";
 import ProductAutoComplete from "../components/ProductAutoComplete";
 import ItemReport from "../components/ItemReport";
+import CustomerReport from "../components/CustomerReport";
+import CustomerAutocomplete from "../components/CustomerAutocomplete";
 
 const ReportsPage = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -39,6 +41,8 @@ const ReportsPage = () => {
     const [salesReport, setSalesReport] = useState<ISalesReport | null>(null);
     const [productId, setProductId] = useState<string | null>(null);
     const [itemReport, setItemReport] = useState<IItemReport | null>(null);
+    const [customerId, setCustomerId] = useState<string | null>(null);
+    const [customerReport, setCustomerReport] = useState<ICustomerReport | null>(null);
 
     // Modal states
     const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -54,14 +58,14 @@ const ReportsPage = () => {
 
     const fetchData = useCallback(async () => {
         if (!startDate || !endDate) return;
-    
+
         setLoading(true);
         setError(null);
-    
+
         try {
             const sDate = new Date(startDate);
             const eDate = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999));
-    
+
             if (activeTab === "sales") {
                 setSalesReport(null);
                 const response = await getSalesReport({
@@ -70,22 +74,32 @@ const ReportsPage = () => {
                 });
                 setSalesReport(response);
             }
-    
+
             if (activeTab === "items" && productId) {
                 setItemReport(null);
                 const response = await getItemReport({
-                    productId, 
+                    productId,
                     startDate: sDate,
                     endDate: eDate,
                 });
                 setItemReport(response);
+            }
+
+            if (activeTab === "customer" && customerId) {
+                setCustomerReport(null);
+                const response = await getCustomerReport({
+                    customerId,
+                    startDate: sDate,
+                    endDate: eDate,
+                });
+                setCustomerReport(response);
             }
         } catch (err) {
             setError("Failed to fetch report. Please try again.");
         } finally {
             setLoading(false);
         }
-    }, [startDate, endDate, activeTab, productId]);
+    }, [startDate, endDate, activeTab, productId, customerId]);
 
     const handleExport = async (type: ReportExportType) => {
         if (!startDate || !endDate) return;
@@ -97,16 +111,24 @@ const ReportsPage = () => {
         const eDate = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999));
 
         try {
-            if(activeTab === "sales"){
+            if (activeTab === "sales") {
                 await exportSalesReport({
                     startDate: sDate,
                     endDate: eDate,
                     type: type === "email" ? exportType : type,
                     email: type === "email" ? email : undefined,
                 });
-            } else if(activeTab === "items" && productId){
+            } else if (activeTab === "items" && productId) {
                 await exportItemReport({
                     productId,
+                    startDate: sDate,
+                    endDate: eDate,
+                    type: type === "email" ? exportType : type,
+                    email: type === "email" ? email : undefined,
+                });
+            } else if(activeTab === "customer" && customerId){
+                await exportCustomerReport({
+                    customerId,
                     startDate: sDate,
                     endDate: eDate,
                     type: type === "email" ? exportType : type,
@@ -158,6 +180,8 @@ const ReportsPage = () => {
 
                     {activeTab === "items" && <ProductAutoComplete size="small" onSelect={(product) => setProductId(product.id)}
                         label="Select a product" />}
+                    {activeTab === "customer" && <CustomerAutocomplete size="small" onSelect={(customer) => setCustomerId(customer.id)}
+                        label="Select a customer" />}
                 </Box>
 
                 {/* Export Buttons */}
@@ -184,7 +208,8 @@ const ReportsPage = () => {
                     {loading ? <CircularProgress /> : error ? <Typography color="error">{error}</Typography>
                         : salesReport ? <SalesReport report={salesReport} />
                             : itemReport ? <ItemReport report={itemReport} />
-                                : <Typography>Select a date range to fetch data.</Typography>}
+                                : customerReport ? <CustomerReport report={customerReport} />
+                                    : <Typography>Select a date range to fetch data.</Typography>}
                 </>
             </Box>
 

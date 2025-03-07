@@ -1,5 +1,5 @@
 import axios from "../lib/axios";
-import { IItemReport, ISalesReport, ReportExportType } from "../types/report.interface";
+import { ICustomerReport, IItemReport, ISalesReport, ReportExportType } from "../types/report.interface";
 import { apiWrapper } from "../utils/helper";
 
 const baseUrl = "/report";
@@ -42,6 +42,10 @@ const exportReport = async (url: string, filter: any, defaultFilename: string) =
     }
 };
 
+export const getCustomerReport = async (filter: { customerId: string; startDate: Date; endDate: Date }): Promise<ICustomerReport> => {
+    return (await apiWrapper(axios.get<ICustomerReport>(`${baseUrl}/customer`, { params: { ...filter } }))).data;
+};
+
 export const getItemReport = async (filter: { productId: string; startDate: Date; endDate: Date }): Promise<IItemReport> => {
     return (await apiWrapper(axios.get<IItemReport>(`${baseUrl}/item`, { params: { ...filter } }))).data;
 };
@@ -56,4 +60,8 @@ export const exportSalesReport = async (filter: { startDate: Date; endDate: Date
 
 export const exportItemReport = async (filter: { productId: string; startDate: Date; endDate: Date; type: ReportExportType; email?: string }) => {
     return exportReport(`${baseUrl}/item/export`, filter, "item_report");
+};
+
+export const exportCustomerReport = async (filter: { customerId: string; startDate: Date; endDate: Date; type: ReportExportType; email?: string }) => {
+    return exportReport(`${baseUrl}/customer/export`, filter, "customer_report");
 };
