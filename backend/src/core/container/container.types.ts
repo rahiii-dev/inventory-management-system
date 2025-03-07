@@ -27,4 +27,5 @@ export default {
   TokenService: Symbol('TokenService'),
   PDFService: Symbol('PDFService'),
   ExcelService: Symbol('ExcelService'),
+  EmailService: Symbol('EmailService'),
 };

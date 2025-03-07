@@ -6,7 +6,7 @@ import Database from "./core/database";
 import { checkEnvVariables } from "./core/utils/envChecker";
 
 (async () => {
-    checkEnvVariables('DATABASE_URL', 'JWT_SECRET_KEY');
+    checkEnvVariables('DATABASE_URL', 'JWT_SECRET_KEY', 'EMAIL_USER', 'EMAIL_PASS');
     const databaseUrl = process.env.DATABASE_URL!;
     const expressPort = process.env.EXPRESS_PORT || '8080';
     const db = new Database(databaseUrl);

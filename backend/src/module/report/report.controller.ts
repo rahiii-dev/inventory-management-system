@@ -8,13 +8,16 @@ import { IPDFService } from "../external/pdf/pdf.interface";
 import { IExcelService } from "../external/excel/excel.service.interface";
 import path from "path";
 import fs from "fs";
+import { IEmailService } from "../external/email/email.service.interface";
 
+const EXPORT_OPTIONS = ["pdf", "excel"]
 
 @injectable()
 export class ReportController {
     @inject(TYPES.ReportService) private reportService!: IReportService;
     @inject(TYPES.PDFService) private PDFService!: IPDFService;
     @inject(TYPES.ExcelService) private excelService!: IExcelService;
+    @inject(TYPES.EmailService) private emailService!: IEmailService;
 
     /**
      * @route GET /report/sales
@@ -40,14 +43,14 @@ export class ReportController {
      **/
     public exportSalesReport = asyncWrapper(async (req: AuthRequest, res: Response) => {
         const managerId = req.payload?.userId!;
-        const { startDate, endDate, type } = req.query;
+        const { startDate, endDate, type, email } = req.query;
     
         if (!startDate || !endDate) {
             return res.status(400).json({ message: "Start date and end date are required" });
         }
     
-        if (!["excel", "pdf"].includes(type as string)) {
-            return res.status(400).json({ message: "Invalid report type. Choose 'excel' or 'pdf'." });
+        if (!EXPORT_OPTIONS.includes(type as string)) {
+            return res.status(400).json({ message: `Invalid report type. Choose any of ${EXPORT_OPTIONS.join(", ")}.` });
         }
     
         const report = await this.reportService.getSalesReport(
@@ -72,6 +75,24 @@ export class ReportController {
             } else if (type === "pdf") {
                 await this.PDFService.generateSalesReportPdf(report, filePath);
             }
+
+            if(email){
+                await this.emailService.sendMail({
+                    to: email as string,
+                    subject: "Your Sales Report",
+                    text: "Please find the attached sales report.",
+                    attachments: [{ filename: fileName, path: filePath }],
+                });
+    
+                fs.unlink(filePath, (deleteErr) => {
+                    if (deleteErr) console.error("Error deleting file:", deleteErr);
+                });
+    
+                return res.json({ message: "Report emailed successfully!" }).end();
+            }
+
+            console.log("working.....");
+            
 
             res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
             res.setHeader("Content-Type", type === "excel" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf");
