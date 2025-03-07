@@ -5,7 +5,7 @@ import { apiWrapper } from "../utils/helper";
 
 const baseUrl = "/customer";
 
-export const listCustomers = async (filter: {query?: string, page: number, limit: number}): Promise<IPaginationResponse<ICustomer>> => {
+export const listCustomers = async (filter: {active?: boolean, query?: string, page: number, limit: number}): Promise<IPaginationResponse<ICustomer>> => {
     return (await apiWrapper(axios.get<IPaginationResponse<ICustomer>>(`${baseUrl}/list`, {
         params: {...filter}
     }))).data;

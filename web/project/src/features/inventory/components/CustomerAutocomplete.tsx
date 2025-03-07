@@ -7,9 +7,11 @@ interface CustomerAutocompleteProps {
     onSelect: (customerId: ICustomer) => void
     label?: string;
     size?: "medium" | "small"
+    showActiveOnly?: boolean;
+    error?: string
 }
 
-const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({ onSelect, label = "Search Customer", size="medium" }) => {
+const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({ onSelect, label = "Search Customer", size="medium", showActiveOnly, error }) => {
     const [searchCustomers, setSearchCustomers] = useState<ICustomer[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -17,7 +19,7 @@ const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({ onSelect, l
         if (!query) return setSearchCustomers([]);
         setLoading(true);
         try {
-            const { data } = await listCustomers({ query, page: 1, limit: 10 });
+            const { data } = await listCustomers({ query, active: showActiveOnly, page: 1, limit: 10 });
             setSearchCustomers(data);
         } finally {
             setLoading(false);
@@ -36,6 +38,8 @@ const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({ onSelect, l
                 <TextField
                     {...params}
                     label={label}
+                    error={!!error}
+                    helperText={error}
                     slotProps={{
                         input: {
                             ...params.InputProps,

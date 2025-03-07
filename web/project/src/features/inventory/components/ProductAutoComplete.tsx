@@ -7,9 +7,10 @@ interface ProductAutoCompleteProps {
     onSelect: (product: IProduct) => void;
     label?: string;
     size?: "medium" | "small"
+    showActiveOnly?: boolean;
 }
 
-const ProductAutoComplete = ({ onSelect, label = "Search Products", size="medium" }: ProductAutoCompleteProps) => {
+const ProductAutoComplete = ({ onSelect, label = "Search Products", size="medium", showActiveOnly }: ProductAutoCompleteProps) => {
     const [searchProducts, setSearchProducts] = useState<IProduct[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -17,7 +18,7 @@ const ProductAutoComplete = ({ onSelect, label = "Search Products", size="medium
         if (!query) return setSearchProducts([]);
         setLoading(true);
         try {
-            const { data } = await listProducts({ query, page: 1, limit: 10 });
+            const { data } = await listProducts({ query, page: 1, limit: 10, active: showActiveOnly });
             setSearchProducts(data);
         } finally {
             setLoading(false);

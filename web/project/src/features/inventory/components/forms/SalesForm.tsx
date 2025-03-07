@@ -8,18 +8,15 @@ import {
     Select,
     FormControl,
     Typography,
-    Autocomplete,
     CircularProgress,
-    debounce,
     Box
 } from "@mui/material";
 import { ISaleItem, PaymentMethod } from "../../../../core/types/sale.interface";
-import { listProducts } from "../../../../core/api/productApi";
 import { IProduct } from "../../../../core/types/product.interface";
-import { ICustomer } from "../../../../core/types/customer.interface";
-import { listCustomers } from "../../../../core/api/customerApi";
 import { createSales } from "../../../../core/api/salesApi";
 import { toast } from "sonner";
+import ProductAutoComplete from "../ProductAutoComplete";
+import CustomerAutocomplete from "../CustomerAutocomplete";
 
 interface SalesFormProps {
     onSubmit: (data: any) => void;
@@ -51,32 +48,6 @@ const validationSchema = Yup.object({
 
 const SalesForm = ({ onSubmit }: SalesFormProps) => {
     const [selectedProducts, setSelectedProducts] = useState<ICustomSaleItem[]>([]);
-    const [searchProducts, setSearchProducts] = useState<IProduct[]>([]);
-    const [searchCustomers, setSearchCustomers] = useState<ICustomer[]>([]);
-    const [loadingProducts, setLoadingProducts] = useState(false);
-    const [loadingCustomers, setLoadingCustomers] = useState(false);
-
-    const fetchProducts = debounce(async (query: string) => {
-        if (!query) return setSearchProducts([]);
-        setLoadingProducts(true);
-        try {
-            const { data } = await listProducts({ query, page: 1, limit: 10 });
-            setSearchProducts(data);
-        } finally {
-            setLoadingProducts(false);
-        }
-    }, 300);
-
-    const fetchCustomers = debounce(async (query: string) => {
-        if (!query) return setSearchCustomers([]);
-        setLoadingCustomers(true);
-        try {
-            const { data } = await listCustomers({ query, page: 1, limit: 10 });
-            setSearchCustomers(data);
-        } finally {
-            setLoadingCustomers(false);
-        }
-    }, 300);
 
     const handleAddProduct = (product: IProduct, setFieldValue: any) => {
         if (selectedProducts.some((p) => p.product === product.id)) return;
@@ -116,7 +87,7 @@ const SalesForm = ({ onSubmit }: SalesFormProps) => {
                 items: [] as { id: string; quantity: number }[],
             }}
             validationSchema={validationSchema}
-            onSubmit={async (values, {setSubmitting}) => {
+            onSubmit={async (values, { setSubmitting }) => {
                 try {
                     const data = await createSales(values)
                     onSubmit(data);
@@ -146,58 +117,21 @@ const SalesForm = ({ onSubmit }: SalesFormProps) => {
                     {/* Customer Search */}
                     {values.paymentMethod === "Customer" && (
                         <Box sx={{ mb: 2 }}>
-                            <Autocomplete
-                                options={searchCustomers}
-                                getOptionLabel={(option: any) => option.fullName}
-                                onInputChange={(_, newValue) => fetchCustomers(newValue)}
-                                onChange={(_, value) => setFieldValue("customer", value ? value.id : "")}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Search Customer"
-                                        error={!!errors.customer && touched.customer}
-                                        helperText={errors.customer && touched.customer ? errors.customer : ""}
-                                        slotProps={{
-                                            input: {
-                                                ...params.InputProps,
-                                                endAdornment: (
-                                                    <>
-                                                        {loadingCustomers ? <CircularProgress size={20} /> : null}
-                                                        {params.InputProps.endAdornment}
-                                                    </>
-                                                ),
-                                            }
-                                        }}
-                                    />
-                                )}
+                            <CustomerAutocomplete
+                                showActiveOnly 
+                                onSelect={(value) => setFieldValue("customer", value ? value.id : "")}
+                                label="Search Customer"
+                                error={touched.customer && errors.customer ? errors.customer : ""} 
                             />
                         </Box>
                     )}
 
                     {/* Product Search */}
                     <Box sx={{ mb: 2 }}>
-                        <Autocomplete
-                            options={searchProducts}
-                            getOptionLabel={(option: any) => `${option.name} - ₹${option.price}`}
-                            onInputChange={(_, newValue) => fetchProducts(newValue)}
-                            onChange={(_, value) => value && handleAddProduct(value, setFieldValue)}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Search Products"
-                                    slotProps={{
-                                        input: {
-                                            ...params.InputProps,
-                                            endAdornment: (
-                                                <>
-                                                    {loadingProducts ? <CircularProgress size={20} /> : null}
-                                                    {params.InputProps.endAdornment}
-                                                </>
-                                            ),
-                                        }
-                                    }}
-                                />
-                            )}
+                        <ProductAutoComplete
+                            showActiveOnly
+                            onSelect={(value) => handleAddProduct(value, setFieldValue)}
+                            label="Search Product"
                         />
                     </Box>
 
@@ -213,7 +147,7 @@ const SalesForm = ({ onSubmit }: SalesFormProps) => {
                                 onChange={(e) => handleQuantityChange(index, Number(e.target.value), setFieldValue)}
                                 inputProps={{ min: 1, max: item.stock }}
                                 sx={{ width: "80px" }}
-                                disabled={item.stock === 0} 
+                                disabled={item.stock === 0}
                             />
                             <Typography>= ₹{item.total}</Typography>
                             <Button
