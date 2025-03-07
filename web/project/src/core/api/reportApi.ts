@@ -10,7 +10,7 @@ export const getSalesReport = async (filter: {startDate: Date, endDate: Date}): 
     }))).data;
 };
 
-export const exportSalesReport = async (filter: { startDate: Date; endDate: Date; type: ReportExportType }) => {
+export const exportSalesReport = async (filter: { startDate: Date; endDate: Date; type: ReportExportType, email?: string }) => {
     try {
         let type = filter.type;
 
@@ -25,14 +25,14 @@ export const exportSalesReport = async (filter: { startDate: Date; endDate: Date
         const blob = new Blob([response.data], { type: response.headers["content-type"] });
         const url = window.URL.createObjectURL(blob);
 
-        if (type === "pdf" || type === "print") {
+        if (type === "print") {
             const newWindow = window.open(url, "_blank");
             if (newWindow) {
                 newWindow.onload = () => newWindow.print();
             } else {
                 console.error("Popup blocked! Allow pop-ups to print.");
             }
-        }  else {
+        } else if(!filter.email) {
             const a = document.createElement("a");
             a.href = url;
             a.download = filename;
