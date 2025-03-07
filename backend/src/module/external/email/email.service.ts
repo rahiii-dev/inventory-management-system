@@ -19,7 +19,7 @@ export class EmailService implements IEmailService {
             attachments: data.attachments, 
           };
     
-          const info = await transporter.sendMail(mailOptions);
+          await transporter.sendMail(mailOptions);
         } catch (error) {
           console.error("Error sending email:", error);
           throw new InternalError("Failed to send mail")

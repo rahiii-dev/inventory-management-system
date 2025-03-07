@@ -12,5 +12,7 @@ router.get("/sales", isAuthenticated, reportController.getSalesReports);
 router.get("/sales/export", isAuthenticated, reportController.exportSalesReport);
 router.get("/item", isAuthenticated, reportController.getItemReports);
 router.get("/item/export", isAuthenticated, reportController.exportItemReport);
+router.get("/customer", isAuthenticated, reportController.getCustomerReports);
+router.get("/customer/export", isAuthenticated, reportController.exportCustomerReport);
 
 export const reportRoutes = router;

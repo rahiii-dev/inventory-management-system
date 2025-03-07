@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { IPDFService } from "./pdf.interface";
-import { IItemReportDTO, ISalesReportDTO } from "../../report/dto/report.dto";
+import { ICustomerReportDTO, IItemReportDTO, ISalesReportDTO } from "../../report/dto/report.dto";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import { formatDate } from "../../../core/utils/helper";
@@ -9,6 +9,62 @@ import { formatDate } from "../../../core/utils/helper";
 @injectable()
 export class PDFService implements IPDFService {
 
+    async generateCustomerReportPdf(report: ICustomerReportDTO, filePath: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const doc = new PDFDocument({ margin: 30 });
+            const stream = fs.createWriteStream(filePath);
+            doc.pipe(stream);
+    
+            // **Header**
+            doc.fontSize(20).text("Customer Report", { align: "center", underline: true });
+            doc.moveDown(1.5);
+    
+            // **Customer Details**
+            doc.font("Helvetica-Bold").fontSize(14).text(`Customer: ${report.customerName}`);
+            doc.font("Helvetica").fontSize(12);
+            doc.text(`Customer ID: ${report.customerId}`);
+            doc.moveDown(1);
+    
+            // **Summary**
+            doc.fontSize(12).text(`Total Orders: ${report.totalOrders}`);
+            doc.text(`Total Spent: INR ${report.totalSpent.toLocaleString()}`);
+            doc.moveDown(1.5);
+    
+            // **Transactions Table Header**
+            doc.fontSize(14).text("Transactions", { underline: true });
+            doc.moveDown(0.5);
+    
+            // **Table Header**
+            const tableTop = doc.y;
+            doc.fontSize(10).text("Sale ID", 50, tableTop);
+            doc.text("Date", 150, tableTop);
+            doc.text("Items", 250, tableTop);
+            doc.text("Payment", 350, tableTop);
+            doc.text("Total (INR)", 450, tableTop);
+    
+            doc.moveDown(0.5);
+            doc.strokeColor("#000").moveTo(50, doc.y).lineTo(570, doc.y).stroke();
+    
+            // **Table Rows**
+            let currentY = doc.y + 5;
+            report.transactions.forEach((txn) => {
+                doc.fontSize(9);
+                doc.text(txn.saleId, 50, currentY);
+                doc.text(formatDate(txn.date), 150, currentY);
+                doc.text(txn.itemsPurchased.toString(), 250, currentY);
+                doc.text(txn.paymentMethod, 350, currentY);
+                doc.text(txn.totalAmount.toFixed(2), 450, currentY);
+    
+                currentY += 20; 
+            });
+    
+            doc.end();
+    
+            stream.on("finish", () => resolve(filePath));
+            stream.on("error", reject);
+        });
+    }
+    
     async generateItemReportPdf(report: IItemReportDTO, filePath: string): Promise<string> {
         return new Promise((resolve, reject) => {
             const doc = new PDFDocument({ margin: 30 });

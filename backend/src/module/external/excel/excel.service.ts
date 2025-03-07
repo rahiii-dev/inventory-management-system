@@ -1,12 +1,65 @@
 import { injectable } from "inversify";
 import { IExcelService } from "./excel.service.interface";
-import { IItemReportDTO, ISalesReportDTO } from "../../report/dto/report.dto";
+import { ICustomerReportDTO, IItemReportDTO, ISalesReportDTO } from "../../report/dto/report.dto";
 import ExcelJS from "exceljs";
 import { formatDate } from "../../../core/utils/helper";
 
 
 @injectable()
 export class ExcelService implements IExcelService {
+
+    async generateCustomerReportExcel(report: ICustomerReportDTO, filePath: string): Promise<string> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const workbook = new ExcelJS.Workbook();
+                const sheet = workbook.addWorksheet("Customer Report");
+
+                // **Header Styling**
+                const headerStyle = {
+                    font: { bold: true, color: { argb: "FFFFFF" } },
+                    fill: { type: "pattern", pattern: "solid", fgColor: { argb: "007ACC" } },
+                    alignment: { horizontal: "center" },
+                    border: { top: { style: "thin" }, bottom: { style: "thin" } }
+                };
+
+                // **Report Title**
+                sheet.addRow(["Customer Report"]).font = { bold: true, size: 16 };
+                sheet.addRow([]);
+                sheet.addRow(["Customer Name", report.customerName]).font = { bold: true };
+                sheet.addRow(["Customer ID", report.customerId]);
+                sheet.addRow(["Total Orders", report.totalOrders]);
+                sheet.addRow(["Total Spent (₹)", report.totalSpent.toLocaleString()]);
+                sheet.addRow([]);
+                sheet.addRow([]);
+
+                // **Table Headers**
+                const headers = ["Sale ID", "Date", "Items Purchased", "Payment Method", "Total (₹)"];
+                sheet.addRow(headers).eachCell((cell) => Object.assign(cell, headerStyle));
+
+                // **Transactions Table**
+                report.transactions.forEach((txn) => {
+                    sheet.addRow([
+                        txn.saleId,
+                        txn.date.toISOString().split("T")[0],
+                        txn.itemsPurchased,
+                        txn.paymentMethod,
+                        txn.totalAmount.toFixed(2)
+                    ]);
+                });
+
+                // **Auto-fit Column Widths**
+                sheet.columns.forEach((column) => {
+                    column.width = 20;
+                });
+
+                // **Save the File**
+                await workbook.xlsx.writeFile(filePath);
+                resolve(filePath);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
 
     async generateItemReportExcel(report: IItemReportDTO, filePath: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
@@ -42,7 +95,7 @@ export class ExcelService implements IExcelService {
                 report.transactions.forEach((txn) => {
                     sheet.addRow([
                         txn.saleId,
-                        txn.date.toISOString().split("T")[0], 
+                        txn.date.toISOString().split("T")[0],
                         txn.quantity,
                         txn.unitPrice.toFixed(2),
                         txn.total.toFixed(2)
@@ -85,7 +138,7 @@ export class ExcelService implements IExcelService {
                 sheet.addRow(["Total Items Sold", report.totalItemsSold]);
                 sheet.addRow(["Average Order Value (₹)", report.averageOrderValue.toFixed(2)]);
                 sheet.addRow([]);
-                sheet.addRow([]); 
+                sheet.addRow([]);
 
                 // **Table Headers**
                 const headers = [
@@ -97,8 +150,8 @@ export class ExcelService implements IExcelService {
                 report.transactions.forEach((txn) => {
                     txn.items.forEach((item, index) => {
                         const row = [
-                            index === 0 ? txn.saleId : "", 
-                            index === 0 ? txn.totalAmount.toLocaleString() : "", 
+                            index === 0 ? txn.saleId : "",
+                            index === 0 ? txn.totalAmount.toLocaleString() : "",
                             index === 0 ? txn.paymentMethod : "",
                             index === 0 ? formatDate(txn.createdAt) : "",
                             item.productName,

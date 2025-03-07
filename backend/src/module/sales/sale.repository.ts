@@ -2,7 +2,7 @@ import { injectable } from "inversify";
 import { MongoBaseRepository } from "../../core/repository/mongo.base.repository";
 import Sale, { ISale } from "./sale.modal";
 import { ISaleRepository } from "./interfaces/sale.repository.interface";
-import { IItemReportDTO, ISalesReportDTO } from "../report/dto/report.dto";
+import { ICustomerReportDTO, IItemReportDTO, ISalesReportDTO } from "../report/dto/report.dto";
 import { InternalError } from "../../core/utils/app.errors";
 import mongoose from "mongoose";
 
@@ -11,6 +11,78 @@ export class SaleRepository extends MongoBaseRepository<ISale> implements ISaleR
     constructor() {
         super(Sale);
     }
+
+    async getCustomerReportFromDate(
+        managerId: string, 
+        customerId: string, 
+        startDate: Date, 
+        endDate: Date
+    ): Promise<ICustomerReportDTO> {
+        try {
+            const report = await this.repository.aggregate([
+                {
+                    $match: {
+                        managerId: new mongoose.Types.ObjectId(managerId),
+                        customer: new mongoose.Types.ObjectId(customerId),
+                        createdAt: { $gte: startDate, $lte: endDate }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "customers", 
+                        localField: "customer",
+                        foreignField: "_id",
+                        as: "customerData"
+                    }
+                },
+                { 
+                    $unwind: { path: "$customerData", preserveNullAndEmptyArrays: true } 
+                },
+                {
+                    $group: {
+                        _id: "$customer",
+                        customerName: { $first: "$customerData.fullName" },
+                        totalSpent: { $sum: "$totalAmount" },
+                        totalOrders: { $sum: 1 },
+                        transactions: {
+                            $push: {
+                                saleId: "$saleId",
+                                date: "$createdAt",
+                                totalAmount: "$totalAmount",
+                                paymentMethod: "$paymentMethod",
+                                itemsPurchased: { $sum: "$items.quantity" }
+                            }
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        customerId: "$_id",
+                        customerName: { $ifNull: ["$customerName", "Unknown Customer"] },
+                        totalSpent: 1,
+                        totalOrders: 1,
+                        transactions: 1
+                    }
+                }
+            ]);
+    
+            if (!report.length) {
+                return {
+                    customerId,
+                    customerName: "Unknown Customer",
+                    totalSpent: 0,
+                    totalOrders: 0,
+                    transactions: []
+                };
+            }
+    
+            return report[0];
+        } catch (error) {
+            throw new InternalError("Failed to fetch customer report");
+        }
+    }
+    
 
     async getItemReportFromDate(managerId: string, productId: string, startDate: Date, endDate: Date): Promise<IItemReportDTO> {
         try {
