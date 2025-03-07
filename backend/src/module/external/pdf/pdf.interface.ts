@@ -1,5 +1,6 @@
-import { ISalesReportDTO } from "../../report/dto/report.dto";
+import { IItemReportDTO, ISalesReportDTO } from "../../report/dto/report.dto";
 
 export interface IPDFService {
     generateSalesReportPdf(report: ISalesReportDTO, filePath: string): Promise<string>;
+    generateItemReportPdf(report: IItemReportDTO, filePath: string): Promise<string>;
 }

@@ -20,6 +20,110 @@ export class ReportController {
     @inject(TYPES.EmailService) private emailService!: IEmailService;
 
     /**
+    * @route GET /report/item
+    * @scope Public
+    * @desc Get item Report
+    **/
+    public getItemReports = asyncWrapper(async (req: AuthRequest, res: Response) => {
+        const managerId = req.payload?.userId!;
+        const { startDate, endDate, productId } = req.query;
+        if (!productId) {
+            return res.status(400).json({ message: "Product is reuired" });
+        }
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: "Start date and end date are required" });
+        }
+
+        const report = await this.reportService.getItemReport(
+            managerId, 
+            productId as string, 
+            new Date(startDate as string), 
+            new Date(endDate as string)
+        );
+
+        return res.json(report)
+    });
+
+    /**
+    * @route GET /report/item/export
+    * @scope Public
+    * @desc Get export item Reports
+ **/
+    public exportItemReport = asyncWrapper(async (req: AuthRequest, res: Response) => {
+        const managerId = req.payload?.userId!;
+        const { startDate, endDate, type, email, productId } = req.query;
+
+        if (!productId) {
+            return res.status(400).json({ message: "Product is reuired" });
+        }
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: "Start date and end date are required" });
+        }
+
+        if (!EXPORT_OPTIONS.includes(type as string)) {
+            return res.status(400).json({ message: `Invalid report type. Choose any of ${EXPORT_OPTIONS.join(", ")}.` });
+        }
+
+        const report = await this.reportService.getItemReport(
+            managerId, 
+            productId as string, 
+            new Date(startDate as string), 
+            new Date(endDate as string)
+        );
+
+
+        const reportsDir = path.join(__dirname, "../../tmp/reports");
+        if (!fs.existsSync(reportsDir)) {
+            fs.mkdirSync(reportsDir, { recursive: true });
+        }
+
+        const timestamp = Date.now();
+        const fileExtension = type === "excel" ? "xlsx" : "pdf";
+        const fileName = `item_report_${timestamp}.${fileExtension}`
+        const filePath = path.join(reportsDir, fileName);
+
+        try {
+            if (type === "excel") {
+                await this.excelService.generateItemReportExcel(report, filePath);
+            } else if (type === "pdf") {
+                await this.PDFService.generateItemReportPdf(report, filePath);
+            }
+
+            if (email) {
+                await this.emailService.sendMail({
+                    to: email as string,
+                    subject: "Your Item Report",
+                    text: "Please find the attached item report.",
+                    attachments: [{ filename: fileName, path: filePath }],
+                });
+
+                fs.unlink(filePath, (deleteErr) => {
+                    if (deleteErr) console.error("Error deleting file:", deleteErr);
+                });
+
+                return res.json({ message: "Report emailed successfully!" })
+            }
+
+            res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+            res.setHeader("Content-Type", type === "excel" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf");
+
+            res.download(filePath, (err) => {
+                if (!err) {
+                    fs.unlink(filePath, (deleteErr) => {
+                        if (deleteErr) console.error("Error deleting file:", deleteErr);
+                    });
+                } else {
+                    console.error("Error sending file:", err);
+                }
+            });
+        } catch (error) {
+            res.status(500).json({ message: "Failed to generate report" });
+        }
+    });
+
+    /**
      * @route GET /report/sales
      * @scope Public
      * @desc Get sales Reports
@@ -44,26 +148,26 @@ export class ReportController {
     public exportSalesReport = asyncWrapper(async (req: AuthRequest, res: Response) => {
         const managerId = req.payload?.userId!;
         const { startDate, endDate, type, email } = req.query;
-    
+
         if (!startDate || !endDate) {
             return res.status(400).json({ message: "Start date and end date are required" });
         }
-    
+
         if (!EXPORT_OPTIONS.includes(type as string)) {
             return res.status(400).json({ message: `Invalid report type. Choose any of ${EXPORT_OPTIONS.join(", ")}.` });
         }
-    
+
         const report = await this.reportService.getSalesReport(
             managerId,
             new Date(startDate as string),
             new Date(endDate as string)
         );
-    
+
         const reportsDir = path.join(__dirname, "../../tmp/reports");
         if (!fs.existsSync(reportsDir)) {
             fs.mkdirSync(reportsDir, { recursive: true });
         }
-    
+
         const timestamp = Date.now();
         const fileExtension = type === "excel" ? "xlsx" : "pdf";
         const fileName = `sales_report_${timestamp}.${fileExtension}`
@@ -76,27 +180,24 @@ export class ReportController {
                 await this.PDFService.generateSalesReportPdf(report, filePath);
             }
 
-            if(email){
+            if (email) {
                 await this.emailService.sendMail({
                     to: email as string,
                     subject: "Your Sales Report",
                     text: "Please find the attached sales report.",
                     attachments: [{ filename: fileName, path: filePath }],
                 });
-    
+
                 fs.unlink(filePath, (deleteErr) => {
                     if (deleteErr) console.error("Error deleting file:", deleteErr);
                 });
-    
-                return res.json({ message: "Report emailed successfully!" }).end();
-            }
 
-            console.log("working.....");
-            
+                return res.json({ message: "Report emailed successfully!" })
+            }
 
             res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
             res.setHeader("Content-Type", type === "excel" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf");
-    
+
             res.download(filePath, (err) => {
                 if (!err) {
                     fs.unlink(filePath, (deleteErr) => {

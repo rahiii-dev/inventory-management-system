@@ -10,5 +10,7 @@ const reportController = container.get<ReportController>(TYPES.ReportController)
 // baseurl: /api/report
 router.get("/sales", isAuthenticated, reportController.getSalesReports);
 router.get("/sales/export", isAuthenticated, reportController.exportSalesReport);
+router.get("/item", isAuthenticated, reportController.getItemReports);
+router.get("/item/export", isAuthenticated, reportController.exportItemReport);
 
 export const reportRoutes = router;
