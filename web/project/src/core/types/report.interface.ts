@@ -10,3 +10,19 @@ export interface ISalesReport {
     transactions: ISale[];
 }
 
+export interface IItemReport {
+    productId: string;
+    productName: string;
+    productDescription?: string;
+    totalQuantitySold: number; 
+    totalRevenue: number;
+    averageSellingPrice: number; 
+    salesCount: number; 
+    transactions: {
+        saleId: string;
+        date: Date;
+        quantity: number;
+        unitPrice: number;
+        total: number;
+    }[];
+}

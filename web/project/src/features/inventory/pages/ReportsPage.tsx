@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
     Box,
     Paper,
@@ -15,13 +15,16 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
+    capitalize,
 } from "@mui/material";
 import { Print, PictureAsPdf, Email, GridOn, CloudDownload } from "@mui/icons-material";
 import PageTitle from "../components/PageTitle";
-import { getSalesReport, exportSalesReport } from "../../../core/api/reportApi";
+import { getSalesReport, exportSalesReport, getItemReport, exportItemReport } from "../../../core/api/reportApi";
 import SalesReport from "../components/SalesReport";
-import { ISalesReport, ReportExportType } from "../../../core/types/report.interface";
+import { IItemReport, ISalesReport, ReportExportType } from "../../../core/types/report.interface";
 import { toast } from "sonner";
+import ProductAutoComplete from "../components/ProductAutoComplete";
+import ItemReport from "../components/ItemReport";
 
 const ReportsPage = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -31,8 +34,11 @@ const ReportsPage = () => {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [loading, setLoading] = useState(false);
     const [exporting, setExporting] = useState(false);
-    const [salesReport, setSalesReport] = useState<ISalesReport | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const [salesReport, setSalesReport] = useState<ISalesReport | null>(null);
+    const [productId, setProductId] = useState<string | null>(null);
+    const [itemReport, setItemReport] = useState<IItemReport | null>(null);
 
     // Modal states
     const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -42,29 +48,44 @@ const ReportsPage = () => {
     const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
         setActiveTab(newValue);
         setSalesReport(null);
+        setItemReport(null);
+        setProductId(null);
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!startDate || !endDate) return;
-
+    
         setLoading(true);
         setError(null);
-
+    
         try {
+            const sDate = new Date(startDate);
+            const eDate = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999));
+    
             if (activeTab === "sales") {
                 setSalesReport(null);
                 const response = await getSalesReport({
-                    startDate: new Date(startDate),
-                    endDate: new Date(new Date(endDate).setUTCHours(23, 59, 59, 999)),
+                    startDate: sDate,
+                    endDate: eDate,
                 });
                 setSalesReport(response);
+            }
+    
+            if (activeTab === "items" && productId) {
+                setItemReport(null);
+                const response = await getItemReport({
+                    productId, 
+                    startDate: sDate,
+                    endDate: eDate,
+                });
+                setItemReport(response);
             }
         } catch (err) {
             setError("Failed to fetch report. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    }, [startDate, endDate, activeTab, productId]);
 
     const handleExport = async (type: ReportExportType) => {
         if (!startDate || !endDate) return;
@@ -72,24 +93,37 @@ const ReportsPage = () => {
         setExporting(true);
         setError(null);
 
+        const sDate = new Date(startDate);
+        const eDate = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999));
+
         try {
-            await exportSalesReport({
-                startDate: new Date(startDate),
-                endDate: new Date(new Date(endDate).setUTCHours(23, 59, 59, 999)),
-                type: type === "email" ? exportType : type,
-                email: type === "email" ? email : undefined,
-            });
+            if(activeTab === "sales"){
+                await exportSalesReport({
+                    startDate: sDate,
+                    endDate: eDate,
+                    type: type === "email" ? exportType : type,
+                    email: type === "email" ? email : undefined,
+                });
+            } else if(activeTab === "items" && productId){
+                await exportItemReport({
+                    productId,
+                    startDate: sDate,
+                    endDate: eDate,
+                    type: type === "email" ? exportType : type,
+                    email: type === "email" ? email : undefined,
+                });
+            }
 
             if (type === "email") {
-                toast.success(`Sales report sent to ${email}`);
+                toast.success(`${capitalize(activeTab)} report sent to ${email}`);
             } else {
-                toast.info(`Sales report (${type.toUpperCase()}) is downloading...`);
+                toast.info(`${capitalize(activeTab)} report (${type.toUpperCase()}) is downloading...`);
             }
         } catch (err) {
             setError("Failed to export report. Please try again.");
         } finally {
             setExporting(false);
-            setEmailModalOpen(false); 
+            setEmailModalOpen(false);
         }
     };
 
@@ -98,7 +132,7 @@ const ReportsPage = () => {
             <PageTitle text="Reports" subtitle="Track your performance within a date range" />
 
             {/* Filters and Export Options */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={3}>
+            <Box display="flex" justifyContent="space-between" alignItems="start" flexWrap="wrap" gap={2} mb={3}>
                 <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                     <TextField
                         type="date"
@@ -121,6 +155,9 @@ const ReportsPage = () => {
                     <Button variant="contained" startIcon={<CloudDownload />} onClick={fetchData} disabled={!startDate || !endDate || loading || exporting}>
                         {loading ? <CircularProgress size={20} /> : "Fetch Data"}
                     </Button>
+
+                    {activeTab === "items" && <ProductAutoComplete size="small" onSelect={(product) => setProductId(product.id)}
+                        label="Select a product" />}
                 </Box>
 
                 {/* Export Buttons */}
@@ -143,23 +180,24 @@ const ReportsPage = () => {
 
             {/* Report Placeholder */}
             <Box>
-                {activeTab === "sales" && (
-                    <>
-                        {loading ? <CircularProgress /> : error ? <Typography color="error">{error}</Typography> : salesReport ? <SalesReport report={salesReport} /> : <Typography>Select a date range to fetch data.</Typography>}
-                    </>
-                )}
+                <>
+                    {loading ? <CircularProgress /> : error ? <Typography color="error">{error}</Typography>
+                        : salesReport ? <SalesReport report={salesReport} />
+                            : itemReport ? <ItemReport report={itemReport} />
+                                : <Typography>Select a date range to fetch data.</Typography>}
+                </>
             </Box>
 
             {/* Email Export Modal */}
             <Dialog open={emailModalOpen} fullWidth onClose={() => setEmailModalOpen(false)}>
                 <DialogTitle>Email Report</DialogTitle>
                 <DialogContent>
-                    <TextField 
-                        label="Enter Email" 
-                        type="email" 
-                        fullWidth 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
+                    <TextField
+                        label="Enter Email"
+                        type="email"
+                        fullWidth
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         margin="dense"
                     />
                     <Typography variant="subtitle1" sx={{ mt: 2 }}>Select Format:</Typography>

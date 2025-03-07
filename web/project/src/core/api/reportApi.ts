@@ -1,48 +1,59 @@
 import axios from "../lib/axios";
-import { ISalesReport, ReportExportType } from "../types/report.interface";
+import { IItemReport, ISalesReport, ReportExportType } from "../types/report.interface";
 import { apiWrapper } from "../utils/helper";
 
 const baseUrl = "/report";
 
-export const getSalesReport = async (filter: {startDate: Date, endDate: Date}): Promise<ISalesReport> => {
-    return (await apiWrapper(axios.get<ISalesReport>(`${baseUrl}/sales`, {
-        params: {...filter}
-    }))).data;
-};
-
-export const exportSalesReport = async (filter: { startDate: Date; endDate: Date; type: ReportExportType, email?: string }) => {
+const exportReport = async (url: string, filter: any, defaultFilename: string) => {
     try {
-        let type = filter.type;
-
-        const response = await axios.get(`${baseUrl}/sales/export`, {
-            params: { ...filter, type: type === "print" ? "pdf" : type },
-            responseType: "blob", 
+        const type = filter.type === "print" ? "pdf" : filter.type;
+        const response = await axios.get(url, {
+            params: { ...filter, type },
+            responseType: "blob",
         });
 
-        const fileExtension = filter.type === "excel" ? "xlsx" : "pdf";
-        const filename = `sales_report.${fileExtension}`;
+        if (!response || !response.data) throw new Error("No data received");
+
+        const fileExtension = type === "excel" ? "xlsx" : "pdf";
+        const filename = `${defaultFilename}.${fileExtension}`;
 
         const blob = new Blob([response.data], { type: response.headers["content-type"] });
-        const url = window.URL.createObjectURL(blob);
+        const fileUrl = window.URL.createObjectURL(blob);
 
-        if (type === "print") {
-            const newWindow = window.open(url, "_blank");
-            if (newWindow) {
-                newWindow.onload = () => newWindow.print();
+        if (filter.type === "print") {
+            const printWindow = window.open(fileUrl, "_blank");
+            if (printWindow) {
+                printWindow.onload = () => printWindow.print();
             } else {
-                console.error("Popup blocked! Allow pop-ups to print.");
+                console.error("Popup blocked! Please allow pop-ups for printing.");
             }
-        } else if(!filter.email) {
+        } else if (!filter.email) {
             const a = document.createElement("a");
-            a.href = url;
+            a.href = fileUrl;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(fileUrl);
         }
     } catch (error) {
-        throw new Error("Error exporting report")
+        console.error("Report export failed:", error);
+        throw new Error("Error exporting report. Please try again.");
     }
 };
 
+export const getItemReport = async (filter: { productId: string; startDate: Date; endDate: Date }): Promise<IItemReport> => {
+    return (await apiWrapper(axios.get<IItemReport>(`${baseUrl}/item`, { params: { ...filter } }))).data;
+};
+
+export const getSalesReport = async (filter: { startDate: Date; endDate: Date }): Promise<ISalesReport> => {
+    return (await apiWrapper(axios.get<ISalesReport>(`${baseUrl}/sales`, { params: { ...filter } }))).data;
+};
+
+export const exportSalesReport = async (filter: { startDate: Date; endDate: Date; type: ReportExportType; email?: string }) => {
+    return exportReport(`${baseUrl}/sales/export`, filter, "sales_report");
+};
+
+export const exportItemReport = async (filter: { productId: string; startDate: Date; endDate: Date; type: ReportExportType; email?: string }) => {
+    return exportReport(`${baseUrl}/item/export`, filter, "item_report");
+};
