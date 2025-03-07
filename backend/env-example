@@ -1,0 +1,6 @@
+NODE_ENV=development/production
+EXPRESS_PORT=express-app-port[8080]
+JWT_SECRET_KEY=your-jwt-secret
+DATABASE_URL=your-mongo-db-url
+EMAIL_USER=you-gmail
+EMAIL_PASS=gmail-password
