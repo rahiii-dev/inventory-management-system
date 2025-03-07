@@ -8,5 +8,5 @@ export interface IProductService {
     bulkStockUpdate(data: {id: string, quantity: number}[]): Promise<boolean>;
     deleteProduct(id: string): Promise<boolean>;
     restoreProduct(id: string): Promise<boolean>;
-    listProducts(filter: { managerId: string, query?: string, page: number, limit: number}): Promise<IPaginationResponse<ProductDTO>>;
+    listProducts(filter: { managerId: string, isActive?: boolean, query?: string, page: number, limit: number}): Promise<IPaginationResponse<ProductDTO>>;
 }

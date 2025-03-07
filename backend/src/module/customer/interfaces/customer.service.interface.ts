@@ -5,7 +5,7 @@ export interface ICustomerService {
   createCustomer(data: CreateCustomerDTO): Promise<CustomerDTO>;
   updateCustomer(id: string, managerId: string, data: UpdateCustomerDTO): Promise<CustomerDTO | null>;
   getCustomerById(id: string): Promise<CustomerDTO | null>;
-  listCustomers(filter: {managerId: string, query?: string, page: number, limit: number}): Promise<IPaginationResponse<CustomerDTO>>;
+  listCustomers(filter: {managerId: string, isActive?: boolean, query?: string, page: number, limit: number}): Promise<IPaginationResponse<CustomerDTO>>;
   deleteCustomer(id: string): Promise<boolean>; 
   restoreCustomer(id: string): Promise<boolean>; 
 }

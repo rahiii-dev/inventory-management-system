@@ -58,10 +58,14 @@ export class CustomerService implements ICustomerService {
         return !!customer;
     }
 
-    async listCustomers(filter: {managerId: string, query?: string; page: number; limit: number; }): Promise<IPaginationResponse<CustomerDTO>> {
-        const { managerId, query, page, limit } = filter;
+    async listCustomers(filter: {managerId: string, isActive?: boolean, query?: string; page: number; limit: number; }): Promise<IPaginationResponse<CustomerDTO>> {
+        const { managerId, isActive, query, page, limit } = filter;
 
         const filterQuery: FilterQuery<ICustomer> = {managerId};
+
+        if(isActive != undefined){
+            filterQuery.isActive = isActive;
+        }
 
         if (query) {
             const sanitizedQuery = querySanitizer(query);

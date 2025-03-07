@@ -60,11 +60,15 @@ export class ProductService implements IProductService {
         return !!product;
     }
 
-    async listProducts(filter: { managerId: string, query?: string; page: number; limit: number; }): Promise<IPaginationResponse<ProductDTO>> {
-        const { managerId, query, page, limit } = filter;
+    async listProducts(filter: { managerId: string, isActive?: boolean, query?: string; page: number; limit: number; }): Promise<IPaginationResponse<ProductDTO>> {
+        const { managerId, isActive, query, page, limit } = filter;
     
         const filterQuery: FilterQuery<IProduct> = {managerId};
-    
+        
+        if(isActive !== undefined){
+            filterQuery.isDeleted = !isActive;
+        }
+        
         if (query) {
             const sanitizedQuery = querySanitizer(query);
             filterQuery.$or = [

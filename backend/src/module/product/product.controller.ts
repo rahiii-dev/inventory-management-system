@@ -34,9 +34,12 @@ export class ProductController {
     public listProducts = asyncWrapper(async (req: AuthRequest, res: Response) => {
         const managerId = req.payload?.userId!;
 
-        const { query, page = 1, limit = 10 } = req.query;
+        const { query, active,  page = 1, limit = 10 } = req.query;
+        const isActive = active !== undefined ? active === "true" : undefined;
+
         const products = await this.productService.listProducts({
             managerId,
+            isActive,
             query: query as string,
             page: parseInt(page as string, 10),
             limit: parseInt(limit as string, 10),
